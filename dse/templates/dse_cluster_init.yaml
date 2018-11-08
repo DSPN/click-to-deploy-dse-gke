@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "dse.fullname" . }}-dse-cluster-init-job
+  namespace: "{{ .Release.Namespace }}"
+  labels: &Labels
+    app.kubernetes.io/name: "{{ .Release.Name }}"
+    app.kubernetes.io/component: dse
+    app: {{ template "dse.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: dse
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: init-opsc-up
+        image: "{{ .Values.imageDseCurl.image }}"
+        command: ['sh', '-c', 'until curl -k https://${OPSC_DNS}:8443; do echo waiting for OPSC; sleep 5; done;']
+        env:
+        {{- $global := . }}
+        - name: OPSC_DNS
+          value: "{{ template "dse.fullname" $global }}-opsc-0.{{ template "dse.fullname" $global }}-opsc.{{ $global.Release.Namespace }}.svc.cluster.local"
+      containers:
+      - name:  {{ template "dse.fullname" . }}-dse-cluster-init
+        image: "{{ .Values.imageDseClusterInit.image }}" 
+        imagePullPolicy: {{ .Values.imageDseClusterInit.pullPolicy | quote }}
+        env:
+        {{- $global := . }}
+        - name: SEED_DNS
+          value: "{{ template "dse.fullname" $global }}-0.{{ template "dse.fullname" $global }}.{{ $global.Release.Namespace }}.svc.cluster.local"
+        - name: OPSC_DNS
+          value: "{{ template "dse.fullname" $global }}-opsc-0.{{ template "dse.fullname" $global }}-opsc.{{ $global.Release.Namespace }}.svc.cluster.local"
+        - name: CLUSTER_NAME
+          value: {{ .Values.config.cluster_name | quote }}
+        - name: CLUSTER_SIZE
+          value: "{{ .Values.config.cluster_size }}"
+        - name: OPSC_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "dse.fullname" . }}-opsc-admin-pwd-secret
+              key: password
+      restartPolicy: Never
+  backoffLimit: 8

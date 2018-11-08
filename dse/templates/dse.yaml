@@ -1,0 +1,157 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "dse.fullname" . }}
+  namespace: "{{ .Release.Namespace }}"
+  labels: &Labels
+    app.kubernetes.io/name: "{{ .Release.Name }}"
+    app.kubernetes.io/component: dse
+    app: {{ template "dse.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: dse
+spec:
+  clusterIP: None
+  type: {{ .Values.service.type }}
+  ports:
+  - port: {{ .Values.config.ports.cql }}
+    name: cql-port
+  selector:
+    app: {{ template "dse.fullname" . }}
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: {{ template "dse.fullname" . }}
+  namespace: "{{ .Release.Namespace }}"
+  labels: &Labels
+    app.kubernetes.io/name: "{{ .Release.Name }}"
+    app.kubernetes.io/component: dse
+    app: {{ template "dse.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: dse
+spec:
+  serviceName: {{ template "dse.fullname" . }}
+  replicas: {{ .Values.config.cluster_size }}
+  podManagementPolicy: {{ .Values.podManagementPolicy.type }}
+  updateStrategy:
+    type: {{ .Values.updateStrategy.type }}
+  template:
+    metadata:
+      labels: *Labels
+    spec:
+      securityContext:
+        fsGroup: {{ .Values.securityContext.fsGroup }}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values: 
+                - {{ template "dse.fullname" . }}
+            topologyKey: kubernetes.io/hostname
+      initContainers:
+      - name: init-opsc-up
+        image: "{{ .Values.imageDseCurl.image }}"
+        command: ['sh', '-c', 'until curl -k https://${OPSC_DNS}:8443; do echo waiting for OPSC; sleep 5; done;']
+        env:
+        {{- $global := . }}
+        - name: OPSC_DNS
+          value: "{{ template "dse.fullname" $global }}-opsc-0.{{ template "dse.fullname" $global }}-opsc.{{ $global.Release.Namespace }}.svc.cluster.local"
+      containers:
+      - name: {{ template "dse.fullname" . }}
+        image: "{{ .Values.imageDSE.image }}"
+        imagePullPolicy: {{ .Values.imageDSE.pullPolicy | quote }}
+        resources:
+          requests:
+            cpu: {{ .Values.resources.dse_requests.cpu | quote }}
+            memory: {{ .Values.resources.dse_requests.memory | quote }}
+        env:
+        {{- $seed_size := default 1 .Values.config.seed_size | int -}}
+        {{- $global := . }}
+        - name: DS_LICENSE
+          value: accept
+        - name: SEEDS
+          value: "{{- range $i, $e := until $seed_size }}{{ template "dse.fullname" $global }}-{{ $i }}.{{ template "dse.fullname" $global }}.{{ $global.Release.Namespace }}.svc.cluster.local,{{- end }}"
+        - name: CLUSTER_NAME
+          value: {{ .Values.config.cluster_name | quote }}
+        - name: NUM_TOKENS
+          value: {{ default "64" .Values.config.num_tokens | quote }}
+        - name: DC
+          value: {{ .Values.config.dc_name | quote }}
+        - name: RACK
+          value: {{ .Values.config.rack_name | quote }}
+        - name: SNITCH
+          value: {{ .Values.config.endpoint_snitch | quote }}
+        - name: OPSCENTER_IP
+          value: {{ template "dse.fullname" . }}-opsc-0.{{ template "dse.fullname" . }}-opsc.{{ .Release.Namespace }}.svc.cluster.local
+        ports:
+        - containerPort: 7000
+          name: intra-node-port
+        - containerPort: 7001
+          name: tls-intra-node
+        - containerPort: 7199
+          name: jmx-port
+        - containerPort: 8609
+          name: inter-node-msg
+        - containerPort: {{ .Values.config.ports.cql }}
+          name: cql-port
+        - containerPort: {{ .Values.config.ports.thrift }}
+          name: thrift-port
+        - containerPort: 8983
+          name: solr-port
+        - containerPort: 8984
+          name: solr-int-node
+        - containerPort: 4040
+          name: spark-app-port
+        - containerPort: 7077
+          name: spark-int-node
+        - containerPort: 7080
+          name: spark-m-web
+        - containerPort: 7081
+          name: spark-w-web
+        - containerPort: 8090
+          name: spark-job
+        - containerPort: 9999
+          name: spark-job-jmx
+        - containerPort: 18080
+          name: spark-histor
+        - containerPort: 8182
+          name: gremlin-port
+        - containerPort: 5598
+          name: dsefs-public
+        - containerPort: 5599
+          name: dsefs-private
+        - containerPort: {{ .Values.config.ports.ds_agent }}
+          name: ds-agent-port
+        volumeMounts:
+        - name: dse-data
+          mountPath: /var/lib/cassandra
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.config.ports.cql }}
+          initialDelaySeconds: 900
+          timeoutSeconds: 1
+          periodSeconds: 30
+          failureThreshold: 10
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "exec nodetool decommission"]
+  volumeClaimTemplates:
+  - metadata:
+      name: dse-data
+      labels: *Labels
+      annotations:
+        volume.beta.kubernetes.io/storage-class: {{ default "standard" .Values.storageClass }}
+    spec:
+      accessModes:
+        - {{ .Values.persistence.accessMode | quote }}
+      resources:
+        requests:
+          storage: {{ .Values.diskSize | quote }}

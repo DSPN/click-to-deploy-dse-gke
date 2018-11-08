@@ -1,0 +1,117 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "dse.fullname" . }}-opsc-ext-lb
+  namespace: "{{ .Release.Namespace }}"
+  labels: &Labels
+    app.kubernetes.io/name: "{{ .Release.Name }}"
+    app.kubernetes.io/component: dse
+    app: {{ template "dse.fullname" . }}-opsc
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: dse
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8443
+    name: opsc-secure-port
+  selector:
+    app: {{ template "dse.fullname" . }}-opsc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "dse.fullname" . }}-opsc
+  namespace: "{{ .Release.Namespace }}"
+  labels: &Labels
+    app.kubernetes.io/name: "{{ .Release.Name }}"
+    app.kubernetes.io/component: dse
+    app: {{ template "dse.fullname" . }}-opsc
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: dse
+spec:
+  clusterIP: None
+  ports:
+  - port: 8888
+    name: opsc-gui-port
+  - port: 8443
+    name: opsc-secure-port
+  - port: 61620
+    name: port-61620
+  selector:
+    app: {{ template "dse.fullname" . }}-opsc
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: {{ template "dse.fullname" . }}-opsc
+  namespace: "{{ .Release.Namespace }}"
+  labels: &Labels
+    app.kubernetes.io/name: "{{ .Release.Name }}"
+    app.kubernetes.io/component: dse
+    app: {{ template "dse.fullname" . }}-opsc
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: dse
+spec:
+  serviceName: "{{ template "dse.fullname" . }}-opsc"
+  replicas: 1
+  template:
+    metadata:
+      labels: *Labels
+    spec:
+      containers:
+        - name: {{ template "dse.fullname" . }}-opsc
+          image: "{{ .Values.imageDseOpscenter.image }}"  
+          imagePullPolicy: {{ .Values.imageDseOpscenter.pullPolicy | quote }}
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/update_admin_password.sh"]
+          resources:
+            requests:
+              cpu: {{ .Values.resources.opsc_requests.cpu | quote }}
+              memory: {{ .Values.resources.opsc_requests.memory | quote }}
+          env:
+          {{- $global := . }}
+          - name: DS_LICENSE
+            value: accept
+          - name: OPSC_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "dse.fullname" . }}-opsc-admin-pwd-secret
+                key: password
+          ports:
+          - containerPort: {{ .Values.config.ports.opsc_gui_port }}
+            name: opsc-gui-port
+          - containerPort: {{ .Values.config.ports.ds_agent_opsc }}
+            name: port-61620
+          volumeMounts:
+          - name: config-clusters-volume
+            mountPath: /opt/opscenter/conf/clusters
+          - name: opsc-conf-volume
+            mountPath: /config
+          - name: opsc-ssl-volume
+            mountPath: /var/lib/opscenter/ssl
+      volumes:
+      - name: opsc-conf-volume
+        configMap:
+          name: {{ template "dse.fullname" . }}-opsc-conf-configmap
+      - name: opsc-ssl-volume
+        configMap:
+          name: {{ template "dse.fullname" . }}-opsc-ssl-configmap
+  volumeClaimTemplates:
+  - metadata:
+      name: config-clusters-volume
+      annotations:
+        volume.beta.kubernetes.io/storage-class: {{ .Values.storageClass }}
+    spec:
+      accessModes:
+        - {{ .Values.persistence.accessMode | quote }}
+      resources:
+        requests:
+          storage: 1Gi

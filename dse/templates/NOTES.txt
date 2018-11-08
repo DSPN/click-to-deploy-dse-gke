@@ -1,0 +1,7 @@
+DSE Cassandra CQL can be accessed via port {{ .Values.config.ports.cql }} on the following DNS name from within your cluster.
+
+You can see the cluster status by run the following:
+- kubectl exec -it --namespace {{ .Release.Namespace }} $(kubectl get pods --namespace {{ .Release.Namespace }} -l app={{ template "dse.fullname" . }} -o jsonpath='{.items[0].metadata.name}') nodetool status
+
+To tail the logs for the Cassandra pod run the following:
+- kubectl logs -f --namespace {{ .Release.Namespace }} $(kubectl get pods --namespace {{ .Release.Namespace }} -l app={{ template "dse.fullname" . }} -o jsonpath='{ .items[0].metadata.name }')

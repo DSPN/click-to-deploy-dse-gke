@@ -1,0 +1,119 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "dse.fullname" . }}-opsc-agent-configmap
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app.kubernetes.io/name: "{{ .Release.Name }}"
+    app.kubernetes.io/component: dse
+    app: {{ template "dse.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: dse
+data:
+{{ $root := . }}
+  {{ range $path, $bytes := .Files.Glob "common/opscenter/conf-dir/agent/conf/*" }}
+  {{ base $path }}: |
+{{ $root.Files.Get $path | indent 4 }}
+  {{ end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "dse.fullname" . }}-opsc-event-plugins-configmap
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app.kubernetes.io/name: "{{ .Release.Name }}"
+    app.kubernetes.io/component: dse
+    app: {{ template "dse.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: dse
+data:
+{{ $root := . }}
+  {{ range $path, $bytes := .Files.Glob "common/opscenter/conf-dir/conf/event-plugins/*" }}
+  {{ base $path }}: |
+{{ $root.Files.Get $path | indent 4 }}
+  {{ end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "dse.fullname" . }}-opsc-ssl-configmap
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app.kubernetes.io/name: "{{ .Release.Name }}"
+    app.kubernetes.io/component: dse
+    app: {{ template "dse.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: dse
+data:
+{{ $root := . }}
+  {{ range $path, $bytes := .Files.Glob "common/opscenter/conf-dir/conf/ssl/*" }}
+  {{ base $path }}: |
+{{ $root.Files.Get $path | indent 4 }}
+  {{ end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "dse.fullname" . }}-opsc-conf-configmap
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app.kubernetes.io/name: "{{ .Release.Name }}"
+    app.kubernetes.io/component: dse
+    app: {{ template "dse.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: dse
+data:
+{{ $root := . }}
+  {{ range $path, $bytes := .Files.Glob "common/opscenter/conf-dir/conf/*" }}
+  {{ base $path }}: |
+{{ $root.Files.Get $path | indent 4 }}
+  {{ end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "dse.fullname" . }}-cassandra-conf-configmap
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app.kubernetes.io/name: "{{ .Release.Name }}"
+    app.kubernetes.io/component: dse
+    app: {{ template "dse.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: dse
+data:
+{{ $root := . }}
+  {{ range $path, $bytes := .Files.Glob "common/dse/conf-dir/resources/cassandra/conf/*" }}
+  {{ base $path }}: |
+{{ $root.Files.Get $path | indent 4 }}
+  {{ end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "dse.fullname" . }}-dse-conf-configmap
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app.kubernetes.io/name: "{{ .Release.Name }}"
+    app.kubernetes.io/component: dse
+    app: {{ template "dse.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: dse
+data:
+{{ $root := . }}
+  {{ range $path, $bytes := .Files.Glob "common/dse/conf-dir/resources/dse/conf/*" }}
+  {{ base $path }}: |
+{{ $root.Files.Get $path | indent 4 }}
+  {{ end }}
