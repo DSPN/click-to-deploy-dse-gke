@@ -44,7 +44,7 @@ spec:
       labels: *Labels
     spec:
       securityContext:
-        fsGroup: {{ .Values.securityContext.fsGroup }}
+        fsGroup: {{ .Values.securityContext.fsGroup_dse }}
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

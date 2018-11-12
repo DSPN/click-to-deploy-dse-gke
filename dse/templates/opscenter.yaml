@@ -64,6 +64,8 @@ spec:
     metadata:
       labels: *Labels
     spec:
+      securityContext:
+        fsGroup: {{ .Values.securityContext.fsGroup_opscenter }}
       containers:
         - name: {{ template "dse.fullname" . }}-opsc
           image: "{{ .Values.imageDseOpscenter.image }}"  
