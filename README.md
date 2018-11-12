@@ -106,7 +106,7 @@ Will be provided in future releases
 If you use GCP Marketplace to deploy DSE, you can go to the the DataStax Enterprise Kubernetes **Application details** screen to **DELETE** the application.  See below our sample screen:
 ![](./img/gcp_console_app_delete.png)
 
-But, if you use the **expanded.yaml** above to deploy your DSE cluster, you can run the following command to uninstall our DSE Kubernetes application:
+But, if you use the **expanded.yaml** above to deploy your DSE cluster, you can run the following command to uninstall your DSE deployment: 
 ```
 $ kubectl delete -f expanded.yaml
 ``` 
