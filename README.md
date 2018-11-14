@@ -5,17 +5,26 @@ This document provides instructions for deploying and decommissioning Datastax E
 ## IMPORTANT NOTE
 There are minimum cluster requirements that MUST be met for the deployment to succeed. Please ensure you have a GKE cluster meeting these minimums before deploying. The requirements are >**5 nodes of instance type n1-standard-4 with at least 60GB of disk size for each DSE node** in either options above.
 
+## Prerequisites
+* Installation of [Google Cloud SDK](https://cloud.google.com/sdk/docs/). You can learn more about the relevant gcloud commands for GKE [here](https://cloud.google.com/sdk/gcloud/reference/container/clusters/)
+* Installation of [Helm client](https://docs.helm.sh/using_helm/#installing-the-helm-client) 
+
 ## Installation
 
 You can either choose to deploy DSE via GCP Marketplace [here](https://console.cloud.google.com/marketplace/details/datastax-public/datastax-enterprise-gke) or follow the instructions below.  Once complete, you can proceed to the next [section](#verify_deployment) to verify your deployment status.
 
 Run the following command to create a similar GKE cluster:
 ```
-$ gcloud container clusters create k8-10-9-3-gke-n1-std-4 --cluster-version=1.10.9-gke.3 --zone us-west1-b --machine-type n1-standard-4  --num-nodes 5
+$ gcloud container clusters create <your-GKE-cluster-name> --cluster-version=<your-GKE-cluster-version> --zone <your-GCP-zone> --machine-type n1-standard-4  --num-nodes 5
+Here is a sample command to find out what GKE cluster versions are available in us-west1-b zone: $ gcloud container get-server-config --zone us-west1-b
+This is a sample command to create a GKE clsuter with GKE cluster version 1.10.9-gke.5 in us-west1-b zone:
+$ gcloud container clusters create k8-10-9-5-gke-n1-std-4 --cluster-version=1.10.9-gke.5 --zone us-west1-b --machine-type n1-standard-4  --num-nodes 5
 ```
-Run the following command to update a kubeconfig file with appropriate credentials and endpoint information to point kubectl at the GKE cluster created above:
+Run the following command to update the endpoint information so your **kubectl** commnad will point at the GKE cluster created above:
 ```
-$ gcloud container clusters get-credentials k8-10-9-3-gke-n1-std-4 --zone us-west1-b
+$ gcloud container clusters get-credentials <your-GKE-cluster-name> --zone <your-GCP-zone>
+This is a sample command for a GKE cluster named k8-10-9-5-gke-n1-std-4 in us-west1-b zone:
+$ gcloud container clusters get-credentials k8-10-9-5-gke-n1-std-4 --zone us-west1-b
 ```
 Run the following command to download the repo source to deploy DSE:
 ```
@@ -125,5 +134,7 @@ kubectl delete persistentvolumeclaims \
 ## Delete the GKE cluster
 If you follow this guide to deploy a GKE cluster and you no longer need it, you can run a similar command like the following to remove the cluster:
 ```
-$ gcloud container clusters delete k8-10-9-3-gke-n1-std-4 --zone us-west1-b
+$ gcloud container clusters delete <your-GKE-cluster-name> --zone <your-GCP-zone>
+This is a sample command for a GKE cluster named k8-10-9-5-gke-n1-std-4 in us-west1-b zone:
+$ gcloud container clusters delete k8-10-9-5-gke-n1-std-4 --zone us-west1-b
 ```
