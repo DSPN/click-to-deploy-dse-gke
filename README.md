@@ -1,4 +1,4 @@
-## Click to deploy DataStax Enterprise (DSE) on Google Kubernetes Engine (GKE)
+## DataStax Enterprise (DSE) on Google Kubernetes Engine (GKE)
 
 This document provides instructions for deploying and decommissioning Datastax Enterprise (DSE) as a Kubernetes app in a GKE cluster or through the GCP Marketplace.
 
