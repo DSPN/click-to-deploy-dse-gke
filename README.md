@@ -7,7 +7,7 @@ There are minimum cluster requirements that MUST be met for the deployment to su
 
 ## Prerequisites
 * Installation of [Google Cloud SDK](https://cloud.google.com/sdk/docs/). You can learn more about the relevant gcloud commands for GKE [here](https://cloud.google.com/sdk/gcloud/reference/container/clusters/)
-* Installation of [Helm client](https://docs.helm.sh/using_helm/#installing-the-helm-client) 
+* Installation of [Helm client](https://docs.helm.sh/using_helm/#installing-the-helm-client)
 
 ## Installation
 
@@ -16,19 +16,26 @@ You can either choose to deploy DSE via GCP Marketplace [here](https://console.c
 Run the following command to create a similar GKE cluster:
 ```
 $ gcloud container clusters create <your-GKE-cluster-name> --cluster-version=<your-GKE-cluster-version> --zone <your-GCP-zone> --machine-type n1-standard-4  --num-nodes 5
-Here is a sample command to find out what GKE cluster versions are available in us-west1-b zone: $ gcloud container get-server-config --zone us-west1-b
+```
+Here is a sample command to find out what GKE cluster versions are available in us-west1-b zone:
+```
+$ gcloud container get-server-config --zone us-west1-b
+```
 This is a sample command to create a GKE clsuter with GKE cluster version 1.10.9-gke.5 in us-west1-b zone:
+```
 $ gcloud container clusters create k8-10-9-5-gke-n1-std-4 --cluster-version=1.10.9-gke.5 --zone us-west1-b --machine-type n1-standard-4  --num-nodes 5
 ```
 Run the following command to update the endpoint information so your **kubectl** commnad will point at the GKE cluster created above:
 ```
 $ gcloud container clusters get-credentials <your-GKE-cluster-name> --zone <your-GCP-zone>
+```
 This is a sample command for a GKE cluster named k8-10-9-5-gke-n1-std-4 in us-west1-b zone:
+```
 $ gcloud container clusters get-credentials k8-10-9-5-gke-n1-std-4 --zone us-west1-b
 ```
 Run the following command to download the repo source to deploy DSE:
 ```
-$ git clone https://github.com/DSPN/click-to-deploy-dse-gke 
+$ git clone https://github.com/DSPN/click-to-deploy-dse-gke
 $ cd click-to-deploy-dse-gke
 ```
 Run the following command to deploy DSE:
@@ -74,6 +81,7 @@ SERVICE_IP=$(kubectl get \
 
 echo "https://${SERVICE_IP}:8443"
 ```
+
 The OpsCenter instance uses a self-signed SSL certificate, so you will need to accept the certificate exception before you can see the OpsCenter's login page. Then log in using username, "admin" and password produced by running the following command:
 ```
 echo -n `(kubectl get \
@@ -82,6 +90,7 @@ echo -n `(kubectl get \
   -o jsonpath='{.data.password}')` \
   | base64 -D | awk '{ print $1; }'
 ```
+
 You should see the console of DataStax Enterprise OpsCenter like below:
 ![](./img/pre_opscenter.png)
 ![](./img/opsc.png)
@@ -94,14 +103,14 @@ By default, the DataStax Enterprise Kubernetes app is deployed using 3 replicas 
 kubectl scale statefulsets "$APP_INSTANCE_NAME-dse-server" \
   --namespace "$NAMESPACE" --replicas=[NEW_REPLICAS]
 ```
-where [NEW_REPLICAS] is the new number.
+where `[NEW_REPLICAS]` is the new number.
 
 ### Scaling down the DataStax Enterprise cluster
 You can manually scale down the DataStax Enterprise cluster using the following procedure.  On each node, you are required to do the following steps starting from the highest-numbered pod of the DSE StatefulSet:
-* Inside the DSE container, run $ nodetool decommission
-* Scale down the StatefulSet by one, using the **$ kubectl scale statefulsets** command.
+* Inside the DSE container, run `$ nodetool decommission`
+* Scale down the StatefulSet by one, using the `$ kubectl scale statefulsets` command.
 * Wait until the pod is removed from the cluster successfully.
-* Remove any persistent volume claim(s) that belong to that replica (DSE node) using the **$ kubectl delete pvc** command.
+* Remove any persistent volume claim(s) that belong to that replica (DSE node) using the `$ kubectl delete pvc` command.
 
 Repeat this procedure until the DataStax Enterprise cluster has your desired number of pods (DSE nodes).
 
@@ -112,13 +121,13 @@ Will be provided in future releases
 
 ## Uninstall the DataStax Enterprise Kubernetes Application
 
-If you use GCP Marketplace to deploy DSE, you can go to the the DataStax Enterprise Kubernetes **Application details** screen to **DELETE** the application.  See below our sample screen:
+If you use GCP Marketplace to deploy DSE, you can go to the the DataStax Enterprise Kubernetes **Application details** screen to **DELETE** the application.  See our sample screen shot below:
 ![](./img/gcp_console_app_delete.png)
 
-But, if you use the **expanded.yaml** above to deploy your DSE cluster, you can run the following command to uninstall your DSE deployment: 
+But, if you use the **expanded.yaml** above to deploy your DSE cluster, you can run the following command to uninstall your DSE deployment:
 ```
 $ kubectl delete -f expanded.yaml
-``` 
+```
 
 ### Deleting the persistent values of your deployment
 By design, deleting StatefulSets in Kubernetes does not remove PersistentVolumeClaims that were attached to their Pods.  This prevents users from losing their stateful data accidentally.  To remove the PersistentVolumeClaims with their attached persistent disks, you need to run the following commands:
@@ -132,9 +141,12 @@ kubectl delete persistentvolumeclaims \
 ```
 
 ## Delete the GKE cluster
-If you follow this guide to deploy a GKE cluster and you no longer need it, you can run a similar command like the following to remove the cluster:
+If you followed this guide to deploy a GKE cluster and no longer need it, you can run a command like the one below to remove the cluster:
 ```
 $ gcloud container clusters delete <your-GKE-cluster-name> --zone <your-GCP-zone>
+```
+
 This is a sample command for a GKE cluster named k8-10-9-5-gke-n1-std-4 in us-west1-b zone:
+```
 $ gcloud container clusters delete k8-10-9-5-gke-n1-std-4 --zone us-west1-b
 ```
