@@ -15,7 +15,11 @@ You can either choose to deploy DSE via GCP Marketplace [here](https://console.c
 
 Run the following command to create a similar GKE cluster:
 ```
-$ gcloud container clusters create <your-GKE-cluster-name> --cluster-version=<your-GKE-cluster-version> --zone <your-GCP-zone> --machine-type n1-standard-4  --num-nodes 5
+$ gcloud container clusters create <your-GKE-cluster-name> \
+  --cluster-version=<your-GKE-cluster-version> \
+  --zone <your-GCP-zone> \
+  --machine-type n1-standard-4  \
+  --num-nodes 5
 ```
 Here is a sample command to find out what GKE cluster versions are available in us-west1-b zone:
 ```
@@ -23,7 +27,11 @@ $ gcloud container get-server-config --zone us-west1-b
 ```
 This is a sample command to create a GKE clsuter with GKE cluster version 1.10.9-gke.5 in us-west1-b zone:
 ```
-$ gcloud container clusters create k8-10-9-5-gke-n1-std-4 --cluster-version=1.10.9-gke.5 --zone us-west1-b --machine-type n1-standard-4  --num-nodes 5
+$ gcloud container clusters create k8-10-9-5-gke-n1-std-4 \
+  --cluster-version=1.10.9-gke.5 \
+  --zone us-west1-b \
+  --machine-type n1-standard-4  \
+  --num-nodes 5
 ```
 Run the following command to update the endpoint information so your **kubectl** commnad will point at the GKE cluster created above:
 ```
