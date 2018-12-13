@@ -96,7 +96,7 @@ echo -n `(kubectl get \
   --namespace "${NAMESPACE}" \
   secret "${APP_INSTANCE_NAME}-dse-server-opsc-admin-pwd-secret" \
   -o jsonpath='{.data.password}')` \
-  | base64 -D | awk '{ print $1; }'
+  | base64 --decode | awk '{ print $1; }'
 ```
 
 You should see the console of DataStax Enterprise OpsCenter like below:
