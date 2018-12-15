@@ -1,18 +1,18 @@
 ## dse-opscenter and dse_clsuter_init docker images
 imageDSE:
-  image: "gcr.io/datastax-public/dse:6.1"
+  image: "marketplace.gcr.io/datastax-public/datastax-enterprise-gke:6"
   pullPolicy: IfNotPresent
-
+# marketplace.gcr.io/datastax-public/datastax-enterprise-gke
 imageDseOpscenter:
-  image: "gcr.io/datastax-public/dse/dse-opscenter-653:6.1"
+  image: "marketplace.gcr.io/datastax-public/datastax-enterprise-gke/dse-opscenter-653:6"
   pullPolicy: IfNotPresent
 
 imageDseClusterInit:
-  image: "gcr.io/datastax-public/dse/dse-cluster-init:6.1"
+  image: "marketplace.gcr.io/datastax-public/datastax-enterprise-gke/dse-cluster-init:6"
   pullPolicy: IfNotPresent
 
 imageDseCurl:
-  image: "gcr.io/datastax-public/dse-curl:6.1"
+  image: "marketplace.gcr.io/datastax-public/datastax-enterprise-gke/dse-curl:6"
   pullPolicy: IfNotPresent
 
 ## Default OPSC admin password
